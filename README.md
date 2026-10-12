@@ -1,59 +1,122 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Steam Games API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+REST API untuk mencari, menyaring, dan melihat statistik game Steam berdasarkan genre, harga, dan rating. Dibuat dengan Laravel 12 dan MySQL sebagai tugas ETS Pemrograman API.
 
-## About Laravel
+## Dataset
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+[Steam Store Games (Clean dataset)](https://www.kaggle.com/datasets/nikdavis/steam-store-games) dari Kaggle (nikdavis), berisi 27.075 game (data sekitar Mei 2019).
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Data sudah dibersihkan sebelum dipakai: duplikat dibuang berdasarkan `appid`, developer dan publisher yang kosong diisi `Unknown`, tanggal dinormalkan, kolom `owners` (rentang) dipecah menjadi `owners_min` dan `owners_max`, serta ditambahkan kolom turunan `positive_pct` dan `is_free`. Kolom yang tidak dipakai dibuang. Hasilnya ada di `database/data/steam_clean.csv`.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Teknologi
 
-## Learning Laravel
+PHP 8.2, Laravel 12, MySQL/MariaDB (XAMPP), Postman.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+## Cara menjalankan
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Syarat: XAMPP (MySQL menyala), PHP 8.2 atau lebih baru, Composer.
 
-## Laravel Sponsors
+```
+git clone https://github.com/musyafakkorporat/ets-api-steam-games-laravel.git
+cd ets-api-steam-games-laravel
+composer install
+copy .env.example .env
+php artisan key:generate
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Buat database kosong lewat phpMyAdmin:
 
-### Premium Partners
+```sql
+CREATE DATABASE steam_learn CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+Atur koneksi di file `.env`:
 
-## Contributing
+```
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=steam_learn
+DB_USERNAME=root
+DB_PASSWORD=
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Buat tabel, isi data, lalu jalankan server:
 
-## Code of Conduct
+```
+php artisan migrate
+php artisan games:import
+php artisan serve
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+API berjalan di `http://127.0.0.1:8000/api`.
 
-## Security Vulnerabilities
+## Endpoint
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+| Method | URL | Fungsi | Status |
+| --- | --- | --- | --- |
+| GET | `/api/games` | Daftar game dengan filter dan pagination | 200 |
+| GET | `/api/games/search?q=` | Cari game berdasarkan nama | 200, 422 |
+| GET | `/api/games/top` | Game dengan rating tertinggi | 200 |
+| GET | `/api/games/{appid}` | Detail satu game | 200, 404 |
+| POST | `/api/games` | Tambah game | 201, 422 |
+| PUT | `/api/games/{appid}` | Ubah game (boleh sebagian kolom) | 200, 404, 422 |
+| DELETE | `/api/games/{appid}` | Hapus game | 200, 404 |
+| GET | `/api/stats/genre` | Statistik per genre | 200 |
+| GET | `/api/stats/year` | Statistik per tahun rilis | 200 |
 
-## License
+### Parameter
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+**`GET /api/games`**: `genre`, `min_price`, `max_price`, `year`, `per_page` (1 sampai 100, bawaan 20).
+Contoh: `/api/games?genre=RPG&min_price=10&max_price=30&per_page=5`
+
+**`GET /api/games/search`**: `q` (wajib), `per_page`.
+
+**`GET /api/games/top`**: `limit` (1 sampai 100, bawaan 10), `min_votes` (minimal jumlah ulasan, bawaan 1000).
+
+**`POST /api/games`** (body JSON): `name`, `genres`, `price` wajib. Opsional: `release_date` (format `YYYY-MM-DD`), `developer`, `publisher`, `platforms`, `positive_ratings`, `negative_ratings`. Kolom `appid`, `release_year`, `is_free`, dan `positive_pct` dihitung otomatis.
+
+```json
+{
+  "name": "Game Belajar Saya",
+  "genres": "Indie;Casual",
+  "price": 4.99,
+  "release_date": "2026-10-12",
+  "positive_ratings": 80,
+  "negative_ratings": 20
+}
+```
+
+### Contoh respons galat
+
+`404` (game tidak ada):
+```json
+{"detail": "Game dengan appid 999999999 tidak ditemukan"}
+```
+
+`422` (data tidak valid):
+```json
+{"detail": "Validasi gagal", "errors": {"price": ["The price field must be at least 0."]}}
+```
+
+## Pengujian
+
+Impor `postman/Steam_Games_API.postman_collection.json` ke Postman. Pastikan variabel koleksi `base_url` bernilai `http://127.0.0.1:8000/api` dan server sedang berjalan. Klik **Run** pada koleksi untuk menjalankan semua request sekaligus: 17 request, 40 tes otomatis, semuanya harus lulus. Urutan request di folder `3 Games - Tulis` jangan diubah karena `Ubah` dan `Hapus` memakai game yang dibuat oleh `Tambah game`.
+
+## Struktur penting
+
+| File | Fungsi |
+| --- | --- |
+| `routes/api.php` | Daftar endpoint |
+| `app/Http/Controllers/GameController.php` | Logika daftar, cari, top, detail, tambah, ubah, hapus |
+| `app/Http/Controllers/StatsController.php` | Logika statistik |
+| `app/Models/Game.php` | Model tabel `games` |
+| `app/Console/Commands/ImportGames.php` | Perintah `games:import` untuk mengisi tabel dari CSV |
+| `database/migrations/` | Rancangan tabel |
+| `database/data/steam_clean.csv` | Data hasil pembersihan |
+| `postman/` | Koleksi Postman beserta tes |
+| `CATATAN.md` | Catatan belajar pembuatan proyek ini |
+
+## Catatan
+
+Genre disimpan sebagai satu teks yang dipisah titik koma (`Action;Indie`), jadi pencocokan genre memakai pola khusus agar "Sport" tidak ikut cocok dengan "Sports". Statistik genre dihitung di PHP karena alasan yang sama.
