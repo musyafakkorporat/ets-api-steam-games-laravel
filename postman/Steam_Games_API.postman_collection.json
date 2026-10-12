@@ -1,0 +1,623 @@
+{
+  "info": {
+    "_postman_id": "589aaf3a-c304-4939-92c6-d6fb3ea1dcc9",
+    "name": "Steam Games API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "58024036"
+  },
+  "item": [
+    {
+      "name": "Info",
+      "item": [
+        {
+          "name": "Root",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));\r\npm.test('Pesan sambutan benar', () => {\r\n    pm.expect(pm.response.json().message).to.eql('Steam Store Games API');\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                ""
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Games - Baca",
+      "item": [
+        {
+          "name": "Daftar game",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();\r\npm.test('Status 200', () => pm.response.to.have.status(200));\r\npm.test('Berisi 20 data per halaman', () => pm.expect(json.data.length).to.eql(20));\r\npm.test('Total minimal 27075 game', () => pm.expect(json.total).to.be.at.least(27075));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/games",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "games"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Daftar dengan filter",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();\r\npm.test('Status 200', () => pm.response.to.have.status(200));\r\npm.test('Maksimal 5 data per halaman', () => pm.expect(json.data.length).to.be.at.most(5));\r\npm.test('Semua harga di antara 10 dan 30', () => {\r\n    json.data.forEach(g => pm.expect(g.price).to.be.within(10, 30));\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/games?genre=RPG&min_price=10&max_price=30&per_page=5",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "games"
+              ],
+              "query": [
+                {
+                  "key": "genre",
+                  "value": "RPG"
+                },
+                {
+                  "key": "min_price",
+                  "value": "10"
+                },
+                {
+                  "key": "max_price",
+                  "value": "30"
+                },
+                {
+                  "key": "per_page",
+                  "value": "5"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Detail game",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();\r\npm.test('Status 200', () => pm.response.to.have.status(200));\r\npm.test('appid adalah 10', () => pm.expect(json.appid).to.eql(10));\r\npm.test('Nama Counter-Strike', () => pm.expect(json.name).to.eql('Counter-Strike'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/games/10",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "games",
+                "10"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Detail tidak ada",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 404', () => pm.response.to.have.status(404));\r\npm.test('Pesan tidak ditemukan', () => {\r\n    pm.expect(pm.response.json().detail).to.include('tidak ditemukan');\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/games/999999999",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "games",
+                "999999999"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cari nama",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();\r\npm.test('Status 200', () => pm.response.to.have.status(200));\r\npm.test('Semua nama mengandung portal', () => {\r\n    json.data.forEach(g => pm.expect(g.name.toLowerCase()).to.include('portal'));\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/games/search?q=portal",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "games",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "portal"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cari tanpa q",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 422', () => pm.response.to.have.status(422));\r\npm.test('Ada pesan error untuk q', () => {\r\n    pm.expect(pm.response.json().errors).to.have.property('q');\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/games/search",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "games",
+                "search"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Top game",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();\r\npm.test('Status 200', () => pm.response.to.have.status(200));\r\npm.test('Berisi 5 game', () => pm.expect(json.data.length).to.eql(5));\r\npm.test('Urut dari rating tertinggi', () => {\r\n    for (let i = 1; i < json.data.length; i++) {\r\n        pm.expect(json.data[i - 1].positive_pct).to.be.at.least(json.data[i].positive_pct);\r\n    }\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/games/top?limit=5",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "games",
+                "top"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "5"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Games - Tulis",
+      "item": [
+        {
+          "name": "Tambah game",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));\r\npm.test('positive_pct dihitung 80', () => {\r\n    pm.expect(pm.response.json().positive_pct).to.eql(80);\r\n});\r\npm.test('is_free false karena harga 4.99', () => {\r\n    pm.expect(pm.response.json().is_free).to.eql(false);\r\n});\r\n\r\nif (pm.response.code === 201) {\r\n    pm.collectionVariables.set('new_id', pm.response.json().appid);\r\n}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"Game Belajar Saya\",\r\n  \"genres\": \"Indie;Casual\",\r\n  \"price\": 4.99,\r\n  \"release_date\": \"2026-10-12\",\r\n  \"positive_ratings\": 80,\r\n  \"negative_ratings\": 20\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/games",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "games"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Tambah game gagal validasi",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();\r\npm.test('Status 422', () => pm.response.to.have.status(422));\r\npm.test('Error menyebut name, genres, dan price', () => {\r\n    pm.expect(json.errors).to.have.property('name');\r\n    pm.expect(json.errors).to.have.property('genres');\r\n    pm.expect(json.errors).to.have.property('price');\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/games",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "games"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ubah game",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();\r\npm.test('Status 200', () => pm.response.to.have.status(200));\r\npm.test('Harga berubah jadi 9.99', () => pm.expect(json.price).to.eql(9.99));\r\npm.test('positive_pct dihitung ulang jadi 90', () => pm.expect(json.positive_pct).to.eql(90));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"price\": 9.99, \"positive_ratings\": 90, \"negative_ratings\": 10}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/games/{{new_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "games",
+                "{{new_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ubah game gagal validasi",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 422', () => pm.response.to.have.status(422));\r\npm.test('Error menyebut price', () => {\r\n    pm.expect(pm.response.json().errors).to.have.property('price');\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"price\": -1}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/games/{{new_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "games",
+                "{{new_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ubah game tidak ada",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 404', () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"price\": 1}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/games/999999999",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "games",
+                "999999999"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Hapus game",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));\r\npm.test('Pesan berhasil dihapus', () => {\r\n    pm.expect(pm.response.json().detail).to.include('berhasil dihapus');\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/games/1069461",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "games",
+                "1069461"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Hapus game tidak ada",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 404', () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/games/999999999",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "games",
+                "999999999"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Statistik",
+      "item": [
+        {
+          "name": "Statistik genre",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();\r\npm.test('Status 200', () => pm.response.to.have.status(200));\r\npm.test('Lebih dari 20 genre', () => pm.expect(json.data.length).to.be.above(20));\r\npm.test('Ada genre Indie', () => {\r\n    pm.expect(json.data.map(g => g.genre)).to.include('Indie');\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/stats/genre",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "stats",
+                "genre"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Statistik tahun",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();\r\npm.test('Status 200', () => pm.response.to.have.status(200));\r\npm.test('Lebih dari 20 tahun', () => pm.expect(json.data.length).to.be.above(20));\r\npm.test('Tiap baris punya release_year dan total_games', () => {\r\n    json.data.forEach(r => {\r\n        pm.expect(r).to.have.property('release_year');\r\n        pm.expect(r).to.have.property('total_games');\r\n    });\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/stats/year",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "stats",
+                "year"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "exec": [
+          "pm.request.headers.upsert({ key: 'Accept', value: 'application/json' });"
+        ],
+        "type": "text/javascript"
+      }
+    },
+    {
+      "listen": "prerequest",
+      "script": {
+        "exec": [
+          "pm.request.headers.upsert({ key: 'Accept', value: 'application/json' });"
+        ],
+        "type": "text/javascript"
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": ""
+    },
+    {
+      "key": "new_id",
+      "value": ""
+    }
+  ]
+}
