@@ -483,13 +483,13 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/games/1069461",
+              "raw": "{{base_url}}/games/{{new_id}}",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
                 "games",
-                "1069461"
+                "{{new_id}}"
               ]
             }
           },
